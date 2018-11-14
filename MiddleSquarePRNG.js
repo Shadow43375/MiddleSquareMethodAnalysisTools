@@ -129,23 +129,59 @@ let PRNG = new MiddleSquarePRNG();
 // period inclusive, low search range, high search range, decays allowed?, number of digits in random numbers
 let periodList = [];
 
-let smallEnd = 0;
-let bigEnd = 1000;
+let smallEnd = 10000;
+let bigEnd = 100000;
+let functionRan = false;
 let desiredPeriodLength = 5;
-for(let j = smallEnd, i = 100; i<=bigEnd; i*=10) {
+let numOfDigits = 0;
+let periodsInRange = [];
+let remainderAfter = bigEnd;
+let lowEndAtEnd = smallEnd;
+
+for(let j = smallEnd, i = getOrderOfMagnitude(smallEnd)*10; i<=bigEnd; i*=10) {
   console.log("range = [" + j + ", " + i + "]");
-  let numOfDigits = i.toString().length-1;
+  numOfDigits = i.toString().length-1;
   if(numOfDigits % 2 !== 0) {
     numOfDigits++;
   }
   console.log("number of digits = " + numOfDigits);
-  let periodsInRange = PRNG.findPeriod(desiredPeriodLength, j, i, false, numOfDigits);
+  periodsInRange = PRNG.findPeriod(desiredPeriodLength, j, i, false, numOfDigits);
   if(periodsInRange) {
     periodList = periodList.concat(periodsInRange);
   }
+
+  remainderAfter = bigEnd - i;
+  lowEndAtEnd = i;
+  functionRan = true
   j = i;
+}
+
+if(lowEndAtEnd !== (lowEndAtEnd + remainderAfter) ) {
+  numOfDigits = remainderAfter.toString().length-1;
+  if(numOfDigits % 2 !== 0) {
+    numOfDigits++;
+  }
+  console.log("number of digits = " + numOfDigits);
+  if(functionRan) {
+    console.log("range after = [" + lowEndAtEnd + ", " + (lowEndAtEnd + remainderAfter) + "]");
+    periodsInRange = PRNG.findPeriod(desiredPeriodLength, lowEndAtEnd, lowEndAtEnd + remainderAfter, false, numOfDigits);
+  }
+  else if(!functionRan) {
+    console.log("range after = [" + smallEnd + ", " + bigEnd + "]");
+    periodsInRange = PRNG.findPeriod(desiredPeriodLength, smallEnd, bigEnd, false, numOfDigits);
+  }
+  if(periodsInRange) {
+    periodList = periodList.concat(periodsInRange);
+  }
 }
 
 console.log("Period list for " + desiredPeriodLength);
 console.log(periodList);
 printAllElements(periodList);
+
+function getOrderOfMagnitude(num) {
+  return 10**(num.toString().length-1)
+}
+
+// need to be able to reach artitrary end points from arbitrary start points (including zero...);
+// need to start experimenting with paralell forms of computation.
